@@ -127,4 +127,38 @@ public class AuthController : ControllerBase
             Role = role
         });
     }
+
+    // =========================
+    // SEED ADMIN (Admin-only POST)
+    // =========================
+    [HttpPost("seed-admin")]
+    public async Task<IActionResult> SeedAdmin()
+    {
+        var exists = await _context.Users.AnyAsync(x => x.Email == "admin@test.com");
+
+        if (exists)
+            return Ok("Already exists");
+
+        var admin = new User
+        {
+            Email = "admin@test.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234"),
+            Role = "Admin"
+        };
+
+        _context.Users.Add(admin);
+        await _context.SaveChangesAsync();
+
+        return Ok("Admin created");
+    }
+
+    // =========================
+    // CLIENT ONLY (Client GET)
+    // =========================
+    [Authorize(Roles = "Client")]
+    [HttpGet("client-only")]
+    public IActionResult ClientOnly()
+    {
+        return Ok("Welcome Client");
+    }
 }
